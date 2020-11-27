@@ -1,0 +1,36 @@
+# check if dwm is loaded
+if [[ $DESKTOP_SESSION == "dwm" ]]; then
+  while true; do
+    curl -s wttr.in?format=1 > /dev/null >  ~/.config/weather
+    aqi >> ~/.config/weather
+    df -h /dev/nvme0n1p4 | tail -1 | awk '{ print $5 }' > ~/.config/du
+    sleep 30s
+  done &
+
+  while true; do
+    coin btc eth ltc xrp icx -n > ~/.config/coin
+    free | grep Mem: | awk '{ printf("%.0f%", $3*100/$2) }' > ~/.config/fu
+    sleep 15s
+  done &
+
+  sleep 0.5s
+
+  while true; do
+    coin="$(cat ~/.config/coin)"
+    gpu="$(sensors | grep edge | awk '{ print $2 }')"
+    du="$(cat ~/.config/du)"
+    fu="$(cat ~/.config/fu)"
+    weather="$(cat ~/.config/weather)"
+
+    if [ $(ip a s | grep NO-CARRIER | wc -l) -eq 0 ]; then
+      con=""
+    else
+      con="No Internet"
+    fi
+    xsetroot -name "$coin | GPU:$gpu | Mem:$fu Used | Disk:$du Used | $weather | $con $(date +%D) $(date +%a) $(date +%T)"
+    sleep 1s
+  done &
+
+  compton --backend glx --paint-on-overlay --vsync opengl-swc &
+  nitrogen --random --set-scaled $HOME/Pictures
+fi
